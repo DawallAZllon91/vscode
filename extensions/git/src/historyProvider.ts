@@ -4,32 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 
-import { Disposable, Event, EventEmitter, FileDecoration, FileDecorationProvider, SourceControlActionButton, SourceControlHistoryItem, SourceControlHistoryItemChange, SourceControlHistoryItemGroup, SourceControlHistoryOptions, SourceControlHistoryProvider, ThemeIcon, Uri, window, l10n } from 'vscode';
+import { Disposable, Event, EventEmitter, FileDecoration, FileDecorationProvider, SourceControlHistoryItem, SourceControlHistoryItemChange, SourceControlHistoryItemGroup, SourceControlHistoryOptions, SourceControlHistoryProvider, ThemeIcon, Uri, window, l10n, LogOutputChannel } from 'vscode';
 import { Repository, Resource } from './repository';
 import { IDisposable, filterEvent } from './util';
 import { toGitUri } from './uri';
-import { SyncActionButton } from './actionButton';
 import { Branch, RefType, Status } from './api/git';
 import { emojify, ensureEmojis } from './emoji';
 import { Operation } from './operation';
 
 export class GitHistoryProvider implements SourceControlHistoryProvider, FileDecorationProvider, IDisposable {
 
-	private readonly _onDidChangeActionButton = new EventEmitter<void>();
-	readonly onDidChangeActionButton: Event<void> = this._onDidChangeActionButton.event;
-
 	private readonly _onDidChangeCurrentHistoryItemGroup = new EventEmitter<void>();
 	readonly onDidChangeCurrentHistoryItemGroup: Event<void> = this._onDidChangeCurrentHistoryItemGroup.event;
 
 	private readonly _onDidChangeDecorations = new EventEmitter<Uri[]>();
 	readonly onDidChangeFileDecorations: Event<Uri[]> = this._onDidChangeDecorations.event;
-
-	private _actionButton: SourceControlActionButton | undefined;
-	get actionButton(): SourceControlActionButton | undefined { return this._actionButton; }
-	set actionButton(button: SourceControlActionButton | undefined) {
-		this._actionButton = button;
-		this._onDidChangeActionButton.fire();
-	}
 
 	private _HEAD: Branch | undefined;
 	private _currentHistoryItemGroup: SourceControlHistoryItemGroup | undefined;
@@ -44,13 +33,7 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 
 	private disposables: Disposable[] = [];
 
-	constructor(protected readonly repository: Repository) {
-		const actionButton = new SyncActionButton(repository);
-		this.actionButton = actionButton.button;
-		this.disposables.push(actionButton);
-
-		this.disposables.push(actionButton.onDidChange(() => this.actionButton = actionButton.button));
-
+	constructor(protected readonly repository: Repository, private readonly logger: LogOutputChannel) {
 		this.disposables.push(repository.onDidRunGitStatus(this.onDidRunGitStatus, this));
 		this.disposables.push(filterEvent(repository.onDidRunOperation, e => e.operation === Operation.Refresh)(() => this._onDidChangeCurrentHistoryItemGroup.fire()));
 
@@ -174,19 +157,24 @@ export class GitHistoryProvider implements SourceControlHistoryProvider, FileDec
 		}
 
 		// Branch base
-		const branchBase = await this.repository.getBranchBase(historyItemGroupId);
+		try {
+			const branchBase = await this.repository.getBranchBase(historyItemGroupId);
 
-		if (branchBase?.name && branchBase?.type === RefType.Head) {
-			return {
-				id: `refs/heads/${branchBase.name}`,
-				label: branchBase.name
-			};
+			if (branchBase?.name && branchBase?.type === RefType.Head) {
+				return {
+					id: `refs/heads/${branchBase.name}`,
+					label: branchBase.name
+				};
+			}
+			if (branchBase?.name && branchBase.remote && branchBase?.type === RefType.RemoteHead) {
+				return {
+					id: `refs/remotes/${branchBase.remote}/${branchBase.name}`,
+					label: `${branchBase.remote}/${branchBase.name}`
+				};
+			}
 		}
-		if (branchBase?.name && branchBase.remote && branchBase?.type === RefType.RemoteHead) {
-			return {
-				id: `refs/remotes/${branchBase.remote}/${branchBase.name}`,
-				label: `${branchBase.remote}/${branchBase.name}`
-			};
+		catch (err) {
+			this.logger.error(`Failed to get branch base for '${historyItemGroupId}': ${err.message}`);
 		}
 
 		return undefined;

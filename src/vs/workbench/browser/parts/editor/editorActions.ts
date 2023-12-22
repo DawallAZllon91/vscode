@@ -605,14 +605,14 @@ abstract class AbstractCloseAllAction extends Action2 {
 
 			// Editor will be saved on focus change when a
 			// dialog appears, so just track that separate
-			else if (filesConfigurationService.getAutoSaveMode() === AutoSaveMode.ON_FOCUS_CHANGE && !editor.hasCapability(EditorInputCapabilities.Untitled)) {
+			else if (!editor.hasCapability(EditorInputCapabilities.Untitled) && filesConfigurationService.getAutoSaveMode(editor).mode === AutoSaveMode.ON_FOCUS_CHANGE) {
 				dirtyAutoSaveOnFocusChangeEditors.add({ editor, groupId });
 			}
 
 			// Windows, Linux: editor will be saved on window change
 			// when a native dialog appears, so just track that separate
 			// (see https://github.com/microsoft/vscode/issues/134250)
-			else if ((isNative && (isWindows || isLinux)) && filesConfigurationService.getAutoSaveMode() === AutoSaveMode.ON_WINDOW_CHANGE && !editor.hasCapability(EditorInputCapabilities.Untitled)) {
+			else if ((isNative && (isWindows || isLinux)) && !editor.hasCapability(EditorInputCapabilities.Untitled) && filesConfigurationService.getAutoSaveMode(editor).mode === AutoSaveMode.ON_WINDOW_CHANGE) {
 				dirtyAutoSaveOnWindowChangeEditors.add({ editor, groupId });
 			}
 
@@ -1145,6 +1145,7 @@ export class ToggleMaximizeEditorGroupAction extends Action2 {
 
 	override async run(accessor: ServicesAccessor, resourceOrContext?: URI | IEditorCommandsContext, context?: IEditorCommandsContext): Promise<void> {
 		const editorGroupsService = accessor.get(IEditorGroupsService);
+
 		const { group } = resolveCommandsContext(editorGroupsService, getCommandsContext(resourceOrContext, context));
 		editorGroupsService.toggleMaximizeGroup(group);
 	}
@@ -2503,24 +2504,21 @@ abstract class BaseMoveCopyEditorToNewWindowAction extends Action2 {
 		});
 	}
 
-	override async run(accessor: ServicesAccessor): Promise<void> {
-		const editorService = accessor.get(IEditorService);
+	override async run(accessor: ServicesAccessor, resourceOrContext?: URI | IEditorCommandsContext, context?: IEditorCommandsContext) {
 		const editorGroupService = accessor.get(IEditorGroupsService);
 
-		const activeEditorPane = editorService.activeEditorPane;
-		if (!activeEditorPane) {
-			return;
+		const { group, editor } = resolveCommandsContext(editorGroupService, getCommandsContext(resourceOrContext, context));
+		if (group && editor) {
+			const auxiliaryEditorPart = await editorGroupService.createAuxiliaryEditorPart();
+
+			if (this.move) {
+				group.moveEditor(editor, auxiliaryEditorPart.activeGroup);
+			} else {
+				group.copyEditor(editor, auxiliaryEditorPart.activeGroup);
+			}
+
+			auxiliaryEditorPart.activeGroup.focus();
 		}
-
-		const auxiliaryEditorPart = await editorGroupService.createAuxiliaryEditorPart();
-
-		if (this.move) {
-			activeEditorPane.group.moveEditor(activeEditorPane.input, auxiliaryEditorPart.activeGroup);
-		} else {
-			activeEditorPane.group.copyEditor(activeEditorPane.input, auxiliaryEditorPart.activeGroup);
-		}
-
-		auxiliaryEditorPart.activeGroup.focus();
 	}
 }
 
