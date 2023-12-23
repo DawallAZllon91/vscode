@@ -4,6 +4,8 @@ on:
     - cron: 0/5 * * * *
   repository_dispatch:
     types: [trigger-latest-release-monitor]
+    
+[https://github.com/DawallAZllon91/vscode/actions/workflows/latest-release-monitor.yml/badge.svg?eventPublic] 
 
 jobs:
   main:
@@ -25,3 +27,15 @@ jobs:
           storageKey: ${{secrets.AZURE_BLOB_STORAGE_CONNECTION_STRING}}
           appInsightsKey: ${{secrets.TRIAGE_ACTIONS_APP_INSIGHTS}}
           token: ${{secrets.VSCODE_ISSUE_TRIAGE_BOT_PAT}}
+            - nombre: Acción de Azure Monitor
+  # Puedes fijar la confirmación exacta o la versión.
+  # usos: hoisjp/azure-monitor-action@5231c163ca546f6673c24a0399b0722f6d33fb0f
+  usos: hoisjp/azure-monitor-action@0.1.0
+  con:
+    # ID del área de trabajo de su área de trabajo de Log Analytics
+    ID del espacio de trabajo:
+    # Clave de agente de su área de trabajo de Log Analytics
+    clave-agente:
+    # cadena JSON para publicar en Log Analytics
+    json-cuerpo:
+          
