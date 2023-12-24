@@ -1,5 +1,5 @@
 # https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revs-fileltfilegt
-# https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-view
+# https://docs.github.com/en/repositories/working-with-files/using-files/viewing-a-file#ignore-commits-in-the-blame-revs
 
 # mjbvz: Fix spacing
 13f4f052582bcec3d6c6c6a70d995c9dee2cac13
