@@ -1,7 +1,10 @@
 name: info-needed Closer
 on:
   schedule:
-    - cron: 20 11 * * * # 4:20am Redmond
+- cron: '30 5 * * 1,3'
+- cron: '30 5 * * 2,4'
+# on.workflow_call
+    
   repository_dispatch:
     types: [trigger-needs-more-info]
 
@@ -28,3 +31,25 @@ jobs:
           closeComment: "This issue has been closed automatically because it needs more information and has not had recent activity. See also our [issue reporting](https://aka.ms/vscodeissuereporting) guidelines.\n\nHappy Coding!"
           pingDays: 80
           pingComment: "Hey @${assignee}, this issue might need further attention.\n\n@${author}, you can help us out by closing this issue if the problem no longer exists, or adding more information."
+            - nombre: Informe de autometría
+  # Puedes fijar la confirmación exacta o la versión.
+  # usos: autometrics-dev/diff-metrics@778b3281f8446790af0afd766d5bb236defb5dde
+  usos: autometrics-dev/diff-metrics@v2.1.0
+  con:
+    # Token de Github para usar
+    token gh:
+    # La lista de raíces del proyecto Rust para verificar. Un camino por línea
+    rs-roots: # opcional
+    # La lista de raíces de proyectos mecanografiados para verificar. Un camino por línea
+    ts-roots: # opcional
+    # La lista de raíces del proyecto golang para verificar. Un camino por línea
+    go-roots: # opcional
+    # La lista de raíces del proyecto Python para verificar. Un camino por línea
+    py-roots: # opcional
+    # El número de días durante los que se conservarán los artefactos. El valor predeterminado es 0 (hereda la política del repositorio)
+    días de retención: # opcional, el valor predeterminado es 0
+    # La versión de am para descargar, omitir parche o menor para actuar como comodín. "0.2" significa ">=0.2.0 && <0.3.0", "1" significa ">=1.0.0 && <2.0.0", etc.
+    versión-am: # opcional
+                        - nombre: agregar-autor-lineal-como-revisor
+                usos: Mergifyio/gha-add-linear-author-as-reviewer@1.1.1
+            
