@@ -31,3 +31,18 @@ jobs:
           label: testplan-item
           invalidLabel: invalid-testplan-item
           comment: Invalid test plan item. See errors below and the [test plan item spec](https://github.com/microsoft/vscode/wiki/Writing-Test-Plan-Items) for more information. This comment will go away when the issues are resolved.
+      - name: Save AppMaps
+        uses: actions/cache/save@v3
+        if: always()
+        with:
+          path: ./tmp/appmap
+          key: appmaps-${{ github.sha }}-${{ github.run_attempt }}
+  appmap-analysis:
+    if: always()
+    needs: [ main ]
+    uses: getappmap/analyze-action/.github/workflows/appmap-analysis.yml@v1
+    permissions:
+      actions: read
+      contents: read
+      checks: write
+      pull-requests: write
