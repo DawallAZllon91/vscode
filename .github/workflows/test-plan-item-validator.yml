@@ -9,18 +9,6 @@ on:
   issues:
     types: [edited]
 
-permissions: 
-  # Allows the EndBug/add-and-commit step to commit the package manager changes,
-  # adding the AppMap language library and configuration file appmap.yml.
-  # Once the EndBug/add-and-commit is removed, this permission can be removed, 
-  # unless you need it for other reasons.
-  contents: write
-
-  # Allows the getappmap/archive-action to write a PR comment with the 
-  # AppMap configuration status.
-  pull-requests: write
-
-# also edit in ./on-label.yml and ./on-open.yml
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -31,23 +19,9 @@ jobs:
         with:
           repository: "microsoft/vscode-github-triage-actions"
           path: ./actions
-          ref: ${{ github.event.pull_request.head.ref }}
       - name: Install Actions
         if: contains(github.event.issue.labels.*.name, 'testplan-item') || contains(github.event.issue.labels.*.name, 'invalid-testplan-item')
         run: npm install --production --prefix ./actions
-      # Begin AppMap CI language agent installation.
-      # This snippet can be safely removed once the AppMap language agent has been
-      # added to the project dependencies, and appmap.yml has been created.
-      - name: Install AppMap tools
-        id: install-appmap
-        uses: getappmap/install-action@v1
-        with:
-          project-type: yarn
-      - name: Commit changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          message: "ci: Add AppMap language agent and appmap.yml"
-      # End AppMap CI language agent installation
       - name: Run Test Plan Item Validator
         if: contains(github.event.issue.labels.*.name, 'testplan-item') || contains(github.event.issue.labels.*.name, 'invalid-testplan-item')
         uses: ./actions/test-plan-item-validator
@@ -57,10 +31,3 @@ jobs:
           label: testplan-item
           invalidLabel: invalid-testplan-item
           comment: Invalid test plan item. See errors below and the [test plan item spec](https://github.com/microsoft/vscode/wiki/Writing-Test-Plan-Items) for more information. This comment will go away when the issues are resolved.
-      # Begin AppMap bootstrap archive step
-      - name: Archive AppMaps
-        id: appmap-bootstrap-archive-appmaps
-        uses: getappmap/archive-action@v1
-        with:
-          revision: ${{ github.event.pull_request.base.sha }}
-      # End AppMap bootstrap archive step
