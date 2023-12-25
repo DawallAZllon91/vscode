@@ -1,3 +1,4 @@
+[![.github/workflows/needs-more-info-closer.yml](https://github.com/DawallAZllon91/vscode/actions/workflows/needs-more-info-closer.yml/badge.svg)](https://github.com/DawallAZllon91/vscode/actions/workflows/needs-more-info-closer.yml)
 name: info-needed Closer
 on:
   schedule:
