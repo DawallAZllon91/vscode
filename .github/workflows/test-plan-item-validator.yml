@@ -29,6 +29,19 @@ jobs:
       - name: Install Actions
         if: contains(github.event.issue.labels.*.name, 'testplan-item') || contains(github.event.issue.labels.*.name, 'invalid-testplan-item')
         run: npm install --production --prefix ./actions
+      # Begin AppMap CI language agent installation.
+      # This snippet can be safely removed once the AppMap language agent has been
+      # added to the project dependencies, and appmap.yml has been created.
+      - name: Install AppMap tools
+        id: install-appmap
+        uses: getappmap/install-action@v1
+        with:
+          project-type: yarn
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          message: "ci: Add AppMap language agent and appmap.yml"
+      # End AppMap CI language agent installation
       - name: Run Test Plan Item Validator
         if: contains(github.event.issue.labels.*.name, 'testplan-item') || contains(github.event.issue.labels.*.name, 'invalid-testplan-item')
         uses: ./actions/test-plan-item-validator
