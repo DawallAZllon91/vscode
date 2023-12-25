@@ -1,5 +1,11 @@
 name: Test Plan Item Validator
 on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: '0 0 * * 0'
   issues:
     types: [edited]
 
